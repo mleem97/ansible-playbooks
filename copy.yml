@@ -1,4 +1,3 @@
-----
 - name: Prüfe und kopiere Datei vom Control Node zum Server
   hosts: localhost  # Zuerst die Datei auf dem Control Node prüfen
   tasks:
