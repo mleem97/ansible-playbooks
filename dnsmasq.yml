@@ -5,15 +5,17 @@
   gather_facts: true
 
   tasks:
-    - name: install dnsmasq
+    - name: Install dnsmasq
       apt:
         name: dnsmasq
         update_cache: true
+      notify: Enable Service
 
     - name: Ensure dnsmasq.conf exists
       copy:
         dest: /etc/dnsmasq.conf
         content: ""
+        mode: '0644'
         force: false
 
     - name: Append DHCP configuration if not present
@@ -28,12 +30,12 @@
         marker: "# {mark} ANSIBLE MANAGED BLOCK - DHCP CONFIGURATION"
       notify: Restart dnsmasq
 
-    - name: Assign IP address to Host-only interface
-      command: ip addr add 192.168.100.1/24 dev enp0s8
-      changed_when: false
-
   handlers:
     - name: Restart dnsmasq
       systemd:
         name: dnsmasq
         state: restarted
+    - name: Enable Service
+      systemd_service:
+        name: dnsmasq
+        enabled: true
