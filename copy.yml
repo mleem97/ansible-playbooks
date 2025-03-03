@@ -1,23 +1,23 @@
 - name: Prüfe und kopiere Datei vom Control Node zum Server
-  hosts: localhost  # Zuerst die Datei auf dem Control Node prüfen
+  hosts: localhost
   tasks:
     - name: Überprüfen, ob die Datei existiert
       stat:
-        path: /pfad/zur/lokalen/datei  # Datei auf dem Control Node
+        path: ~/datei  # Datei auf dem Control Node
       register: file_check
 
     - name: Ausgabe bei fehlender Datei (Fehlermeldung in rot)
       debug:
         msg: "\033[1;31m[FEHLER] Datei existiert auf Ursprungssystem nicht!\033[0m"
       when: not file_check.stat.exists
-      failed_when: not file_check.stat.exists  # Markiert das Play als fehlgeschlagen
+      failed_when: not file_check.stat.exists 
 
 - name: Kopiere Datei vom Control Node auf den Server
   hosts: ubuntu_server
   tasks:
     - name: Kopiere Datei nur, wenn sie existiert
       copy:
-        src: /pfad/zur/lokalen/datei  # Datei auf dem Control Node
-        dest: /tmp/datei  # Ziel auf dem Managed Node
+        src: ~/datei
+        dest: /tmp/datei  
         mode: "0644"
       when: file_check.stat.exists  # Nur ausführen, wenn die Datei existiert

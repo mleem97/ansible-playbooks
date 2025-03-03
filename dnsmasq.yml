@@ -1,0 +1,39 @@
+---
+- name: Install and configure dnsmasq
+  hosts: ubuntuserver
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: install dnsmasq
+      apt:
+        name: dnsmasq
+        update_cache: true
+
+    - name: Ensure dnsmasq.conf exists
+      copy:
+        dest: /etc/dnsmasq.conf
+        content: ""
+        force: false
+
+    - name: Append DHCP configuration if not present
+      blockinfile:
+        path: /etc/dnsmasq.conf
+        block: |
+          interface=enp0s8
+          bind-interfaces
+          dhcp-range=192.168.100.10,192.168.100.20,24h
+          # exclude loopback interface
+          except-interface="lo"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - DHCP CONFIGURATION"
+      notify: Restart dnsmasq
+
+    - name: Assign IP address to Host-only interface
+      command: ip addr add 192.168.100.1/24 dev enp0s8
+      changed_when: false
+
+  handlers:
+    - name: Restart dnsmasq
+      systemd:
+        name: dnsmasq
+        state: restarted
