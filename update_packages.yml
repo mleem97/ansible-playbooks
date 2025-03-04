@@ -1,0 +1,40 @@
+---
+- hosts: ubuntuserver
+  become: true
+  tasks:
+    - name: Warten, bis der APT-Lock freigegeben wird
+      shell: while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 5; done;
+
+    - name: Update APT-Paketliste
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade alle Pakete auf die neueste Version
+      apt:
+        upgrade: dist
+        force_apt_get: yes
+
+    - name: Entferne nicht mehr benötigte Pakete
+      apt:
+        autoremove: yes
+
+    - name: Lösche nicht mehr benötigte APT-Caches
+      apt:
+        autoclean: yes
+
+    - name: Prüfe, ob ein Neustart erforderlich ist
+      register: reboot_required_file
+      stat:
+        path: /var/run/reboot-required get_md5=no
+
+    - name: Starte das System neu, falls nötig
+      reboot:
+        msg: "Reboot durch Ansible wegen Kernel-Update"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+      when: reboot_required_file.stat.exists
