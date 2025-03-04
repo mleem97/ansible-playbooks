@@ -31,20 +31,20 @@
       notify: Restart dnsmasq
 
     - name: Allow firewall rules for dnsmasq and related services
-      ufw:
+      community.general.ufw:
         rule: allow
-        port: "{{ item }}"
-        proto: "{{ item.split('/')[-1] }}"
-      with_items:
-        - '22/tcp'         # SSH
-        - '67/udp'         # DHCP Server
-        - '68/udp'         # DHCP Client
-        - '53/udp'         # DNS (UDP)
-        - '53/tcp'         # DNS (TCP)
-        - '137/udp'        # NetBIOS Name Service
-        - '138/udp'        # NetBIOS Datagram Service
-        - '139/tcp'        # NetBIOS Session Service
-        - '445/tcp'        # Microsoft-DS (Samba)
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+      loop:
+        - { port: '22', proto: 'tcp' }     # SSH
+        - { port: '67', proto: 'udp' }     # DHCP Server
+        - { port: '68', proto: 'udp' }     # DHCP Client
+        - { port: '53', proto: 'udp' }     # DNS (UDP)
+        - { port: '53', proto: 'tcp' }     # DNS (TCP)
+        - { port: '137', proto: 'udp' }    # NetBIOS Name Service
+        - { port: '138', proto: 'udp' }    # NetBIOS Datagram Service
+        - { port: '139', proto: 'tcp' }    # NetBIOS Session Service
+        - { port: '445', proto: 'tcp' }    # Microsoft-DS (Samba)
 
   handlers:
     - name: Restart dnsmasq
