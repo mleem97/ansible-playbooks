@@ -6,14 +6,14 @@
   tasks:
 
     - name: Print ansible_facts
-      debug:
+      ansible.builtin.debug:
         var: ansible_facts
 
     - name: Install Samba
       ansible.builtin.apt:
         name: samba
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Create directory /mnt/sambashare
       ansible.builtin.file:
@@ -21,15 +21,22 @@
         state: directory
         mode: '0755'
 
-    - name: Check if /mntcache exists
-      ansible.builtin.stat:
+    - name: Ensure /mntcache exists
+      ansible.builtin.file:
         path: /mntcache
-      register: mntcache_dir
+        state: directory
+        mode: '0755'
+
+    - name: Check if /mntcache/appdata exists
+      ansible.builtin.stat:
+        path: /mntcache/appdata
+      register: appdata_dir
 
     - name: Move directory if it exists
       ansible.builtin.command:
         cmd: mv /mntcache/appdata/ /mnt/sambashare
-      when: mntcache_dir.stat.exists
+      when: appdata_dir.stat.exists
+      changed_when: appdata_dir.stat.exists
 
     - name: Remove old directory
       ansible.builtin.file:
@@ -44,7 +51,7 @@
 
     - name: Set password for Samba user
       ansible.builtin.command:
-        cmd: smbpasswd -a smbuser -n
+        cmd: smbpasswd -a smbuser
       args:
         creates: /etc/samba/smbpasswd
 
@@ -54,7 +61,7 @@
         owner: smbuser
         group: smbuser
         mode: '0700'
-        recurse: yes
+        recurse: true
 
     - name: Update smb.conf
       ansible.builtin.blockinfile:
@@ -80,14 +87,10 @@
       ansible.builtin.systemd:
         name: smbd
         state: restarted
-        enabled: yes
+        enabled: true
 
     - name: Allow Samba ports in firewall
-      ansible.builtin.ufw:
+      community.general.ufw:
         rule: allow
         name: Samba
         state: enabled
-
-    #- name: Check firewall status
-    #  ansible.builtin.ufw:
-    #    state: status
