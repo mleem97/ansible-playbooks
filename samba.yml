@@ -88,6 +88,6 @@
         name: Samba
         state: enabled
 
-    - name: Check firewall status
-      ansible.builtin.ufw:
-        state: status
+    #- name: Check firewall status
+    #  ansible.builtin.ufw:
+    #    state: status
