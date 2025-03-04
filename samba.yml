@@ -1,1 +1,82 @@
 
+---
+- name: Samba Server Einrichtung auf Ubuntu
+  hosts: all
+  become: true
+  tasks:
+    - name: Samba installieren
+      apt:
+        name: samba
+        state: present
+        update_cache: yes
+
+    - name: Ordner /mnt/sambashare erstellen
+      file:
+        path: /mnt/sambashare
+        state: directory
+        mode: '0755'
+
+    - name: Verzeichnis verschieben, falls es existiert
+      command: mv /mntcache/appdata/ /mnt/sambashare
+      when: ansible_facts['ansible_mounts'] | selectattr('mount', 'equalto', '/mntcache') | list | length > 0
+      ignore_errors: yes
+
+    - name: Altes Verzeichnis entfernen
+      file:
+        path: /mnt/cache/
+        state: absent
+      ignore_errors: yes
+
+    - name: Samba-Benutzer smbuser anlegen
+      user:
+        name: smbuser
+        shell: /bin/false
+        state: present
+
+    - name: Passwort für Samba-Benutzer setzen
+      command: smbpasswd -a smbuser -n
+      args:
+        creates: /etc/samba/smbpasswd
+
+    - name: Berechtigungen für /mnt/sambashare anpassen
+      file:
+        path: /mnt/sambashare
+        owner: smbuser:smbuser
+        mode: '0700'
+        recurse: yes
+
+    - name: smb.conf anpassen
+      blockinfile:
+        path: /etc/samba/smb.conf
+        marker: "# {mark} Ansible block"
+        block: |
+          [global]
+            security = user
+            map to guest = never
+
+          [SAMBA]
+            valid users = smbuser
+            path = /mnt/sambashare
+            public = no
+            writable = yes
+            comment = Sambashare
+            printable = no
+            guest ok = no
+            create mask = 0600
+            directory mask = 0700
+
+    - name: Samba-Dienst neu starten
+      systemd:
+        name: smbd
+        state: restarted
+        enabled: yes
+
+    - name: Samba Ports in der Firewall freigeben
+      ufw:
+        rule: allow
+        name: Samba
+        state: enabled
+
+    - name: Firewallstatus überprüfen
+      ufw:
+        state: status
