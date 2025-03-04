@@ -4,6 +4,11 @@
   become: true
   gather_facts: true
   tasks:
+
+    - name: Print ansible_facts
+        debug:
+          var: ansible_facts
+
     - name: Install Samba
       ansible.builtin.apt:
         name: samba
