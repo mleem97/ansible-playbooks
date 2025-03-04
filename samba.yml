@@ -2,6 +2,7 @@
 - name: Configure Samba Server on Ubuntu
   hosts: ubuntuserver
   become: true
+  gather_facts: true
   tasks:
     - name: Install Samba
       ansible.builtin.apt:
