@@ -6,20 +6,20 @@
 
   tasks:
     - name: Install dnsmasq
-      apt:
+      ansible.builtin.apt:
         name: dnsmasq
         update_cache: true
       notify: Enable Service
 
     - name: Ensure dnsmasq.conf exists
-      copy:
+      ansible.builtin.copy:
         dest: /etc/dnsmasq.conf
         content: ""
         mode: '0644'
         force: false
 
     - name: Append DHCP configuration if not present
-      blockinfile:
+      ansible.builtin.blockinfile:
         path: /etc/dnsmasq.conf
         block: |
           interface=enp0s8
@@ -37,23 +37,24 @@
         proto: "{{ item.proto }}"
         state: enabled
       loop:
-        #- { port: '22', proto: 'tcp' }     # SSH
+        # - { port: '22', proto: 'tcp' }     # SSH
         - { port: '67', proto: 'udp' }     # DHCP Server
         - { port: '68', proto: 'udp' }     # DHCP Client
-        #- { port: '53', proto: 'udp' }     # DNS (UDP)
-        #- { port: '53', proto: 'tcp' }     # DNS (TCP)
-        #- { port: '137', proto: 'udp' }    # NetBIOS Name Service
-        #- { port: '138', proto: 'udp' }    # NetBIOS Datagram Service
-        #- { port: '139', proto: 'tcp' }    # NetBIOS Session Service
-        #- { port: '445', proto: 'tcp' }    # Microsoft-DS (Samba)
-       
+        # - { port: '53', proto: 'udp' }     # DNS (UDP)
+        # - { port: '53', proto: 'tcp' }     # DNS (TCP)
+        # - { port: '137', proto: 'udp' }    # NetBIOS Name Service
+        # - { port: '138', proto: 'udp' }    # NetBIOS Datagram Service
+        # - { port: '139', proto: 'tcp' }    # NetBIOS Session Service
+        # - { port: '445', proto: 'tcp' }    # Microsoft-DS (Samba)
 
   handlers:
     - name: Restart dnsmasq
-      systemd:
+      ansible.builtin.systemd:
         name: dnsmasq
         state: restarted
+
     - name: Enable Service
-      systemd_service:
+      ansible.builtin.systemd:
         name: dnsmasq
         enabled: true
+        
