@@ -1,6 +1,6 @@
 ---
 - name: Configure Samba Server on Ubuntu
-  hosts: all
+  hosts: ubuntuserver
   become: true
   tasks:
     - name: Install Samba
