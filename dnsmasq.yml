@@ -1,5 +1,5 @@
 ---
-- name: Install and configure dnsmasq
+- name: Install and configure dnsmasq and UFW.
   hosts: ubuntuserver
   become: true
   gather_facts: true
@@ -29,6 +29,22 @@
           except-interface="lo"
         marker: "# {mark} ANSIBLE MANAGED BLOCK - DHCP CONFIGURATION"
       notify: Restart dnsmasq
+
+    - name: Allow firewall rules for dnsmasq and related services
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: "{{ item.split('/')[-1] }}"
+      with_items:
+        - '22/tcp'         # SSH
+        - '67/udp'         # DHCP Server
+        - '68/udp'         # DHCP Client
+        - '53/udp'         # DNS (UDP)
+        - '53/tcp'         # DNS (TCP)
+        - '137/udp'        # NetBIOS Name Service
+        - '138/udp'        # NetBIOS Datagram Service
+        - '139/tcp'        # NetBIOS Session Service
+        - '445/tcp'        # Microsoft-DS (Samba)
 
   handlers:
     - name: Restart dnsmasq
