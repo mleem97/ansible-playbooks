@@ -46,6 +46,17 @@
         - { port: '139', proto: 'tcp' }    # NetBIOS Session Service
         - { port: '445', proto: 'tcp' }    # Microsoft-DS (Samba)
 
+    - name: Check if UFW is enabled
+      command: ufw status
+      register: ufw_status
+      changed_when: false
+
+    - name: Enable UFW if not enabled
+      community.general.ufw:
+        state: enabled
+        policy: deny
+      when: "'inactive' in ufw_status.stdout"
+
   handlers:
     - name: Restart dnsmasq
       systemd:
