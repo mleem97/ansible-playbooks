@@ -6,8 +6,8 @@
   tasks:
 
     - name: Print ansible_facts
-        debug:
-          var: ansible_facts
+      debug:
+        var: ansible_facts
 
     - name: Install Samba
       ansible.builtin.apt:
@@ -21,10 +21,15 @@
         state: directory
         mode: '0755'
 
+    - name: Check if /mntcache exists
+      ansible.builtin.stat:
+        path: /mntcache
+      register: mntcache_dir
+
     - name: Move directory if it exists
       ansible.builtin.command:
         cmd: mv /mntcache/appdata/ /mnt/sambashare
-      when: ansible_facts['ansible_mounts'] | selectattr('mount', 'equalto', '/mntcache') | list | length > 0
+      when: mntcache_dir.stat.exists
 
     - name: Remove old directory
       ansible.builtin.file:
