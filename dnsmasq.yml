@@ -35,27 +35,18 @@
         rule: allow
         port: "{{ item.port }}"
         proto: "{{ item.proto }}"
+        state: enabled
       loop:
-        - { port: '22', proto: 'tcp' }     # SSH
+        #- { port: '22', proto: 'tcp' }     # SSH
         - { port: '67', proto: 'udp' }     # DHCP Server
         - { port: '68', proto: 'udp' }     # DHCP Client
-        - { port: '53', proto: 'udp' }     # DNS (UDP)
-        - { port: '53', proto: 'tcp' }     # DNS (TCP)
-        - { port: '137', proto: 'udp' }    # NetBIOS Name Service
-        - { port: '138', proto: 'udp' }    # NetBIOS Datagram Service
-        - { port: '139', proto: 'tcp' }    # NetBIOS Session Service
-        - { port: '445', proto: 'tcp' }    # Microsoft-DS (Samba)
-
-    - name: Check if UFW is enabled
-      command: ufw status
-      register: ufw_status
-      changed_when: false
-
-    - name: Enable UFW if not enabled
-      community.general.ufw:
-        state: enabled
-        policy: deny
-      when: "'inactive' in ufw_status.stdout"
+        #- { port: '53', proto: 'udp' }     # DNS (UDP)
+        #- { port: '53', proto: 'tcp' }     # DNS (TCP)
+        #- { port: '137', proto: 'udp' }    # NetBIOS Name Service
+        #- { port: '138', proto: 'udp' }    # NetBIOS Datagram Service
+        #- { port: '139', proto: 'tcp' }    # NetBIOS Session Service
+        #- { port: '445', proto: 'tcp' }    # Microsoft-DS (Samba)
+       
 
   handlers:
     - name: Restart dnsmasq
