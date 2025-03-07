@@ -25,7 +25,7 @@
           dhcp-range=192.168.100.10,192.168.100.20,24h
           # exclude loopback interface
           except-interface="lo"
-        marker: "# {mark} ANSIBLE MANAGED BLOCK - DHCP CONFIGURATION"
+        marker: "# {mark} ANSIBLE MANAGEDs BLOCK - DHCP CONFIGURATION"
       notify: Restart dnsmasq
 
     - name: Assign IP address to Host-only interface
