@@ -1,0 +1,96 @@
+---
+- name: Configure Samba Server on Ubuntu
+  hosts: ubuntuserver
+  become: true
+  gather_facts: true
+  tasks:
+
+    - name: Print ansible_facts
+      ansible.builtin.debug:
+        var: ansible_facts
+
+    - name: Install Samba
+      ansible.builtin.apt:
+        name: samba
+        state: present
+        update_cache: true
+
+    - name: Create directory /mnt/sambashare
+      ansible.builtin.file:
+        path: /mnt/sambashare
+        state: directory
+        mode: '0755'
+
+    - name: Ensure /mntcache exists
+      ansible.builtin.file:
+        path: /mntcache
+        state: directory
+        mode: '0755'
+
+    - name: Check if /mntcache/appdata exists
+      ansible.builtin.stat:
+        path: /mntcache/appdata
+      register: appdata_dir
+
+    - name: Move directory if it exists
+      ansible.builtin.command:
+        cmd: mv /mntcache/appdata/ /mnt/sambashare
+      when: appdata_dir.stat.exists
+      changed_when: appdata_dir.stat.exists
+
+    - name: Remove old directory
+      ansible.builtin.file:
+        path: /mnt/cache/
+        state: absent
+
+    - name: Create Samba user smbuser
+      ansible.builtin.user:
+        name: smbuser
+        shell: /bin/false
+        state: present
+
+    - name: Set password for Samba user
+      ansible.builtin.command:
+        cmd: smbpasswd -a smbuser
+      args:
+        creates: /etc/samba/smbpasswd
+
+    - name: Adjust permissions for /mnt/sambashare
+      ansible.builtin.file:
+        path: /mnt/sambashare
+        owner: smbuser
+        group: smbuser
+        mode: '0700'
+        recurse: true
+
+    - name: Update smb.conf
+      ansible.builtin.blockinfile:
+        path: /etc/samba/smb.conf
+        marker: "# {mark} Ansible block"
+        block: |
+          [global]
+            security = user
+            map to guest = never
+
+          [SAMBA]
+            valid users = smbuser
+            path = /mnt/sambashare
+            public = no
+            writable = yes
+            comment = Sambashare
+            printable = no
+            guest ok = no
+            create mask = 0600
+            directory mask = 0700
+
+    - name: Restart Samba service
+      ansible.builtin.systemd:
+        name: smbd
+        state: restarted
+        enabled: true
+
+    - name: Allow Samba ports in firewall
+      community.general.ufw:
+        rule: allow
+        name: Samba
+        state: enabled

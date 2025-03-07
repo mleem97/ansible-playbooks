@@ -1,23 +1,25 @@
-- name: Prüfe und kopiere Datei vom Control Node zum Server
+----
+- name: Prüfe und kopiere Datei vom Command Host -> Server
   hosts: localhost
-  tasks:
-    - name: Überprüfen, ob die Datei existiert
-      stat:
-        path: ~/datei  # Datei auf dem Control Node
+  tasks: 
+    - name: Prüfe ob datei Existiert
+      stat: 
+        path: ~/datei
       register: file_check
-
-    - name: Ausgabe bei fehlender Datei (Fehlermeldung in rot)
+    
+    - name: "Datei Fehlt -> Fehlermeldung"
       debug:
-        msg: "\033[1;31m[FEHLER] Datei existiert auf Ursprungssystem nicht!\033[0m"
-      when: not file_check.stat.exists
-      failed_when: not file_check.stat.exists 
+        msg: "\033[1;31mFEHLER] DATEI EXISTIERT AUF URSPRUNGSSYSTEM NICHT!\033[0m"
+      when: not file_check.stat.exists  
+      failed_when: not file_check.stat.exists  
 
-- name: Kopiere Datei vom Control Node auf den Server
-  hosts: ubuntu_server
-  tasks:
-    - name: Kopiere Datei nur, wenn sie existiert
+--     
+- name: Kopiere Datei vom Command Host -> Server
+  hosts: ubuntuserver
+  tasks: 
+    - name: Kopiere Datei wenn vorhanden
       copy:
         src: ~/datei
-        dest: /tmp/datei  
+        dest: /tmp/datei
         mode: "0644"
-      when: file_check.stat.exists  # Nur ausführen, wenn die Datei existiert
+      when: file_check.stat.exists  

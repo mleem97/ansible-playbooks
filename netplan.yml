@@ -1,0 +1,22 @@
+---
+- name: Set static IP Address 
+  hosts: ubuntuserver
+  become: true 
+  gather_facts: yes
+  vars:
+    expected_ipv4: "192.168.100.1" 
+  tasks:
+    - name: Copy netplanconfig to /etc/netplan
+      copy:
+        src: /home/marvin/ansible/Templates/01-netconfig.yaml 
+        dest: /etc/netplan/02-testconfig.yaml 
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Apply netplan
+      command: 
+        cmd: netplan apply
+      
+    - name: Get enp0s8 ipv4 
+      shell: hostname -I | awk '{print $2}'
